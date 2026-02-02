@@ -1,4 +1,4 @@
-import { redis } from "../utils/redis";
+import { redis } from "../utils/redis.js";
 
 export async function recordAbuse(ip: string): Promise<number> {
   const key = `abuse:${ip}`;

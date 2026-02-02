@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { redis } from "../utils/redis";
+import { redis } from "../utils/redis.js";
 
 export async function rateLimit(
   ip: string,

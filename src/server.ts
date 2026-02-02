@@ -1,8 +1,8 @@
 import "dotenv/config";
 import Fastify from "fastify";
-import checkRoute from "./routes/check";
+import checkRoute from "./routes/check.js";
 import cors from "@fastify/cors";
-import { auth } from "./middleware/auth";
+import { auth } from "./middleware/auth.js";
 import { uptime } from "node:process";
 
 if (!process.env.REDIS_URL) {

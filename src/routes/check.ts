@@ -1,9 +1,9 @@
 import "dotenv/config";
-import { rateLimit } from "../services/rateLimiter";
-import { recordAbuse } from "../services/abuse";
+import { rateLimit } from "../services/rateLimiter.js";
+import { recordAbuse } from "../services/abuse.js";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { logDecision } from "../services/logger";
-import { redis } from "../utils/redis";
+import { logDecision } from "../services/logger.js";
+import { redis } from "../utils/redis.js";
 
 export default async function (app: FastifyInstance) {
   app.post("/", async (req: FastifyRequest, reply: FastifyReply) => {
