@@ -8,4 +8,17 @@ if (!process.env.REDIS_URL) {
 export const redis = new Redis(process.env.REDIS_URL!, {
   maxRetriesPerRequest: 2,
   enableOfflineQueue: false,
+  lazyConnect: false,
+  retryStrategy: (times) => {
+    const delay = Math.min(times * 50, 2000);
+    return delay;
+  },
+});
+
+redis.on("error", (err) => {
+  console.error("Redis connection error:", err);
+});
+
+redis.on("connect", () => {
+  console.log("Redis connected");
 });
