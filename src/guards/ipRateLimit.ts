@@ -1,4 +1,10 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import fp from "fastify-plugin";
+import {
+  FastifyInstance,
+  FastifyRequest,
+  FastifyReply,
+  FastifyPluginAsync,
+} from "fastify";
 import { redis } from "../utils/redis";
 
 interface RateLimitOptions {
@@ -6,47 +12,48 @@ interface RateLimitOptions {
   window: number; // in seconds
 }
 
-export async function ipRateLimit(
-  app: FastifyInstance,
-  options: RateLimitOptions,
-) {
-  app.addHook(
-    "onRequest",
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      const ip = request.ip;
+const ipRateLimit: FastifyPluginAsync<RateLimitOptions> = fp(
+  async (app: FastifyInstance, options: RateLimitOptions) => {
+    console.log("🔧 Registering IP Rate Limit plugin...");
 
-      console.log("Request IP: ", ip);
+    app.addHook(
+      "onRequest",
+      async (request: FastifyRequest, reply: FastifyReply) => {
+        const ip = request.ip;
 
-      const key = `rl:ip:${ip}`;
-      //const current = await redis.incr(key);
+        console.log("🔍 Request IP: ", ip);
 
-      // increment + expire atomically
-      const [[, current]] = await redis
-        .multi()
-        .incr(key)
-        .expire(key, options.window, "NX")
-        .exec();
+        const key = `rl:ip:${ip}`;
+        const current = Number(await redis.incr(key));
 
-      console.log(`Key: ${key}, Count: ${current}`);
+        if (current === 1) {
+          await redis.expire(key, options.window);
+        }
 
-      //   if (current === 1) {
-      //     await redis.expire(key, options.window);
-      //   }
+        console.log(
+          `📊 Key: ${key}, Count: ${current}, Limit: ${options.limit}`,
+        );
 
-      const remaining = Math.max(options.limit - current, 0);
+        const remaining = Math.max(options.limit - current, 0);
 
-      reply.header("X-RateLimit-Limit", options.limit);
-      reply.header("X-RateLimit-Remaining", remaining);
+        reply.header("X-RateLimit-Limit", options.limit);
+        reply.header("X-RateLimit-Remaining", remaining);
 
-      if (current > options.limit) {
-        reply.code(429);
-        reply.header("Retry-After", options.window);
+        if (current > options.limit) {
+          console.log(`❌ Rate limit exceeded for ${ip}`);
+          reply.code(429);
+          reply.header("Retry-After", options.window);
 
-        return reply.send({
-          error: "Too Many Requests",
-          message: `Rate limit exceeded. Try again in ${options.window} seconds.`,
-        });
-      }
-    },
-  );
-}
+          return reply.send({
+            error: "Too Many Requests",
+            message: `Rate limit exceeded. Try again in ${options.window} seconds.`,
+          });
+        }
+      },
+    );
+
+    console.log("✅ IP Rate Limit plugin registered");
+  },
+);
+
+export default ipRateLimit;

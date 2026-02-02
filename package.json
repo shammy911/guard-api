@@ -1,6 +1,7 @@
 {
   "name": "guard-api",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -15,6 +16,7 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "fastify": "^5.7.2",
+    "fastify-plugin": "^5.1.0",
     "gitignore": "^0.7.0",
     "ioredis": "^5.9.2"
   },

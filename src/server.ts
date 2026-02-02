@@ -1,29 +1,8 @@
-import "dotenv/config";
-
 import Fastify from "fastify";
-//import checkRoute from "./routes/check";
-import { redis } from "./utils/redis";
-import { healthRoute } from "./routes/health";
-import { ipRateLimit } from "./guards/ipRateLimit";
+import checkRoute from "./routes/check";
 
-const app = Fastify({
-  logger: true,
-});
+const app = Fastify();
 
-// Applying IP rate limiting guard globally
-app.register(ipRateLimit, {
-  limit: 3, // max 3 requests
-  window: 60, // per 60 seconds
-});
+app.register(checkRoute, { prefix: "/check" });
 
-app.register(healthRoute);
-
-const port = Number(process.env.PORT) || 3000;
-
-// redis.ping().then((res) => {
-//   console.log("Redis connected:", res);
-// });
-
-app.listen({ port, host: "0.0.0.0" }, () =>
-  console.log(`Guard API is running on port ${port}...`),
-);
+app.listen({ port: 3000 }, () => console.log("Guard API running"));

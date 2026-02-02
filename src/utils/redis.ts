@@ -1,8 +1,3 @@
-import "dotenv/config";
-
 import Redis from "ioredis";
 
-export const redis = new Redis(process.env.REDIS_URL as string, {
-  maxRetriesPerRequest: 2,
-  enableReadyCheck: true,
-});
+export const redis = new Redis(process.env.REDIS_URL!);
