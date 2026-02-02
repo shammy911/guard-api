@@ -1,10 +1,11 @@
+import "dotenv/config";
 import { redis } from "../utils/redis";
 
 export async function rateLimit(
   ip: string,
   route: string,
-  limit = 10,
-  windowSeconds = 60,
+  limit = Number(process.env.RATE_LIMIT_MAX || 10),
+  windowSeconds = Number(process.env.RATE_LIMIT_WINDOW || 60),
 ): Promise<boolean> {
   const key = `rl:${ip}:${route}`;
   const count = await redis.incr(key);

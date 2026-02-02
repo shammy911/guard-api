@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { redis } from "../utils/redis";
 
 export async function logDecision(data: {
@@ -12,8 +13,10 @@ export async function logDecision(data: {
     timestamp: Date.now(),
   };
 
+  const LOG_RETENTION = Number(process.env.LOG_RETENTION || 1000);
+
   const key = `logs:${data.clientKey}`;
 
   await redis.lpush(key, JSON.stringify(logEntry));
-  await redis.ltrim(key, 0, 999); // Keep only the latest 1000 logs
+  await redis.ltrim(key, 0, LOG_RETENTION - 1); // Keep only the latest LOG_RETENTION logs
 }
