@@ -50,7 +50,6 @@ export default async function (app: FastifyInstance) {
       } catch (error) {
         return reply.code(503).send({
           allowed: false,
-          reason: "SERVICE_UNAVAILABLE",
         });
       }
 
