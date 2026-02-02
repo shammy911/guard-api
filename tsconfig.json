@@ -8,10 +8,10 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    "module": "NodeNext",
+    "module": "commonjs",
     "target": "ES2020",
     "types": [],
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "outDir": "dist",
     "rootDir": "src",
