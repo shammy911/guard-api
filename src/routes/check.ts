@@ -12,7 +12,7 @@ export default async function (app: FastifyInstance) {
     async (req: FastifyRequest, reply: FastifyReply) => {
       //const { ip, route } = req.body as { ip: string; route: string };
 
-      const clientKey = req.headers["x-api-key"] as string;
+      const clientKey = req.headers["x-guard-key"] as string;
 
       // Self rate limiting
       try {
@@ -36,7 +36,7 @@ export default async function (app: FastifyInstance) {
 
       //Trusted IP only
       const ip = req.ip;
-      const route = req.body as string;
+      const route = (req.body as { route: string }).route;
 
       // Rate limit decision
       let allowed = false;
