@@ -3,7 +3,6 @@ import Fastify from "fastify";
 import checkRoute from "./routes/check.js";
 import cors from "@fastify/cors";
 import { auth } from "./middleware/auth.js";
-import { uptime } from "node:process";
 
 if (!process.env.REDIS_URL) {
   throw new Error("REDIS_URL is required");
