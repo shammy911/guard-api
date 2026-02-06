@@ -1,5 +1,6 @@
 import "dotenv/config";
 import Fastify from "fastify";
+import usageRoute from "./routes/usage.js";
 import checkRoute from "./routes/check.js";
 import cors from "@fastify/cors";
 import { auth } from "./middleware/auth.js";
@@ -27,6 +28,7 @@ app.get("/health", async () => {
 
 app.addHook("preHandler", auth);
 
+app.register(usageRoute, { prefix: "/usage" });
 app.register(checkRoute, { prefix: "/check" });
 
 app.listen({ port: Number(process.env.PORT) || 3000, host: "0.0.0.0" }, () =>
