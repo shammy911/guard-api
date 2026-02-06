@@ -5,6 +5,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { logDecision } from "../services/logger.js";
 import { redis } from "../utils/redis.js";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
+import { recordUsage } from "../services/usage.js";
 
 export default async function (app: FastifyInstance) {
   app.post(
@@ -63,6 +64,7 @@ export default async function (app: FastifyInstance) {
       // Decision Handling
       if (!allowed) {
         try {
+          await recordUsage(clientKey, false);
           await recordAbuse(ip);
           await logDecision({
             clientKey,
@@ -82,6 +84,7 @@ export default async function (app: FastifyInstance) {
 
       // Allowed Path
       try {
+        await recordUsage(clientKey, true);
         await logDecision({
           clientKey,
           ip,
