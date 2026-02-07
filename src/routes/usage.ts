@@ -1,5 +1,4 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { auth } from "../middleware/auth.js";
 import { getMonthlyUsage } from "../services/usageReader.js";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
 

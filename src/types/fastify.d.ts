@@ -5,6 +5,7 @@ declare module "fastify" {
     apiKey?: string;
     plan?: {
       rpm: number;
+      monthly: number;
     };
   }
 }

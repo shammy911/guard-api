@@ -9,5 +9,6 @@ export const PLANS = {
   },
   enterprise: {
     rpm: 2000,
+    monthly: 2_000_000,
   },
 } as const;

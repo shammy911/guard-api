@@ -7,25 +7,27 @@ import { redis } from "../utils/redis.js";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
 import { recordUsage } from "../services/usage.js";
 import { checkKeyLimits } from "../services/keyLimiter.js";
+import { getMonthlyUsage } from "../services/monthlyUsage.js";
+
+function normalizeIp(ip: string) {
+  return ip === "::1" ? "127.0.0.1" : ip; // localhost fix
+}
 
 export default async function (app: FastifyInstance) {
   app.post(
     "/",
     { preHandler: [apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const SELF_LIMIT = Number(process.env.SELF_RATE_LIMIT || 60);
-
-      //const clientKey = req.headers["x-api-key"] as string;
       const clientKey = req.apiKey!; // Set by apiKeyGuard middleware
 
-      // Self rate limiting
+      //Guard Self rate limiting service
       try {
         const selfKey = `self_rl:${clientKey}`;
         const selfCount = await redis.incr(selfKey);
         if (selfCount === 1) {
           await redis.expire(selfKey, 60); // 1 minute window
         }
-        if (selfCount > SELF_LIMIT) {
+        if (selfCount > Number(process.env.SELF_RATE_LIMIT || 60)) {
           return reply.code(429).send({
             allowed: false,
             reason: "GUARD_RATE_LIMIT",
@@ -38,19 +40,31 @@ export default async function (app: FastifyInstance) {
         });
       }
 
-      // // ---- API key limits (NEW) ----
-      // const keyDecision = await checkKeyLimits(clientKey);
-      // if (!keyDecision.allowed) {
-      //   await redis.incr(`usage:${clientKey}:blocked`);
-      //   return reply.code(429).send(keyDecision);
-      // }
-
-      //Trusted IP only
-      let ip = req.ip;
-      if (ip === "::1") ip = "127.0.0.1"; // localhost fix
+      // IP Normalization and Route Extraction with basic validation
+      let ip = normalizeIp(req.ip);
       const body = req.body as { route?: string };
       if (!body?.route || typeof body.route !== "string") {
         return reply.code(400).send({ error: "ROUTE_REQUIRED" });
+      }
+
+      // Monthly quota enforcement
+      try {
+        const used = await getMonthlyUsage(clientKey);
+        const limit = req.plan!.monthly;
+
+        if (used >= limit) {
+          return reply.code(200).send({
+            allowed: false,
+            reason: "MONTHLY_QUOTA_EXCEEDED",
+          });
+        }
+      } catch {
+        // Fail closed OR fail open?
+        // Product decision: fail closed is safer
+        return reply.code(503).send({
+          allowed: false,
+          reason: "SERVICE_UNAVAILABLE",
+        });
       }
 
       const route = body.route;
@@ -74,8 +88,6 @@ export default async function (app: FastifyInstance) {
 
       try {
         await recordUsage(clientKey, allowed);
-
-        // PHASE 1 FIX:
         // last_seen belongs to the API key metadata
         await redis.hset(`api_key:${clientKey}`, {
           last_seen: Date.now().toString(),
