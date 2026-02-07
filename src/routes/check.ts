@@ -6,6 +6,7 @@ import { logDecision } from "../services/logger.js";
 import { redis } from "../utils/redis.js";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
 import { recordUsage } from "../services/usage.js";
+import { checkKeyLimits } from "../services/keyLimiter.js";
 
 export default async function (app: FastifyInstance) {
   app.post(
@@ -14,7 +15,8 @@ export default async function (app: FastifyInstance) {
     async (req: FastifyRequest, reply: FastifyReply) => {
       const SELF_LIMIT = Number(process.env.SELF_RATE_LIMIT || 60);
 
-      const clientKey = req.headers["x-guard-key"] as string;
+      //const clientKey = req.headers["x-api-key"] as string;
+      const clientKey = req.apiKey!; // Set by apiKeyGuard middleware
 
       // Self rate limiting
       try {
@@ -35,6 +37,13 @@ export default async function (app: FastifyInstance) {
           reason: "SERVICE_UNAVAILABLE",
         });
       }
+
+      // // ---- API key limits (NEW) ----
+      // const keyDecision = await checkKeyLimits(clientKey);
+      // if (!keyDecision.allowed) {
+      //   await redis.incr(`usage:${clientKey}:blocked`);
+      //   return reply.code(429).send(keyDecision);
+      // }
 
       //Trusted IP only
       let ip = req.ip;
@@ -61,10 +70,23 @@ export default async function (app: FastifyInstance) {
         });
       }
 
+      // USAGE TRACKING
+
+      try {
+        await recordUsage(clientKey, allowed);
+
+        // PHASE 1 FIX:
+        // last_seen belongs to the API key metadata
+        await redis.hset(`api_key:${clientKey}`, {
+          last_seen: Date.now().toString(),
+        });
+      } catch {
+        // analytics must never affect decision
+      }
+
       // Decision Handling
       if (!allowed) {
         try {
-          await recordUsage(clientKey, false);
           await recordAbuse(ip);
           await logDecision({
             clientKey,
@@ -84,7 +106,6 @@ export default async function (app: FastifyInstance) {
 
       // Allowed Path
       try {
-        await recordUsage(clientKey, true);
         await logDecision({
           clientKey,
           ip,

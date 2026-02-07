@@ -15,7 +15,9 @@ export async function recordUsage(apiKey: string, allowed: boolean) {
       await redis.hincrby(usageKey, "blocked", 1); // Increment blocked count
     }
 
-    await redis.set(`usage:last_seen:${apiKey}`, Date.now().toString());
+    await redis.hset(`api_key:${apiKey}`, {
+      last_seen: Date.now().toString(),
+    });
   } catch (error) {
     // Usage tracking mut never block the main request flow, so we catch and log any errors without throwing
     console.error("Error recording usage:", error);
