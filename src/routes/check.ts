@@ -18,17 +18,17 @@ export default async function (app: FastifyInstance) {
     "/",
     { preHandler: [auth, apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
-      const clientKey = req.apiKey!; // Set by apiKeyGuard middleware
+      const apiKey = req.apiKey!; // Set by apiKeyGuard middleware
 
       //Guard Self rate limiting service
       try {
-        const selfKey = `self_rl:${clientKey}`;
+        const selfKey = `self_rl:${apiKey}`;
         const selfCount = await redis.incr(selfKey);
         if (selfCount === 1) {
           await redis.expire(selfKey, 60); // 1 minute window
         }
         if (selfCount > Number(process.env.SELF_RATE_LIMIT || 60)) {
-          return reply.code(429).send({
+          return reply.code(200).send({
             allowed: false,
             reason: "GUARD_RATE_LIMIT",
           });
@@ -41,7 +41,7 @@ export default async function (app: FastifyInstance) {
       }
 
       // IP Normalization and Route Extraction with basic validation
-      let ip = normalizeIp(req.ip);
+      const ip = normalizeIp(req.ip);
       const body = req.body as { route?: string };
       if (!body?.route || typeof body.route !== "string") {
         return reply.code(400).send({ error: "ROUTE_REQUIRED" });
@@ -49,7 +49,7 @@ export default async function (app: FastifyInstance) {
 
       // Monthly quota enforcement
       try {
-        const used = await getMonthlyUsage(clientKey);
+        const used = await getMonthlyUsage(apiKey);
         const limit = req.plan!.monthly;
 
         if (used >= limit) {
@@ -81,15 +81,15 @@ export default async function (app: FastifyInstance) {
       } catch (error) {
         return reply.code(503).send({
           allowed: false,
+          reason: "SERVICE_UNAVAILABLE",
         });
       }
 
       // USAGE TRACKING
-
       try {
-        await recordUsage(clientKey, allowed);
+        await recordUsage(apiKey, allowed);
         // last_seen belongs to the API key metadata
-        await redis.hset(`api_key:${clientKey}`, {
+        await redis.hset(`api_key:${apiKey}`, {
           last_seen: Date.now().toString(),
         });
       } catch {
@@ -101,7 +101,7 @@ export default async function (app: FastifyInstance) {
         try {
           await recordAbuse(ip);
           await logDecision({
-            clientKey,
+            clientKey: apiKey,
             ip,
             route,
             allowed: false,
@@ -111,15 +111,16 @@ export default async function (app: FastifyInstance) {
           // even logging failure should not crash
         }
 
-        return reply.code(429).send({
+        return reply.code(200).send({
           allowed: false,
+          reason: "RATE_LIMIT",
         });
       }
 
       // Allowed Path
       try {
         await logDecision({
-          clientKey,
+          clientKey: apiKey,
           ip,
           route,
           allowed: true,
