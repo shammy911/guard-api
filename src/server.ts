@@ -33,6 +33,13 @@ async function start() {
     };
   });
 
+  app.get("/", async () => {
+    return {
+      status: "ok",
+      routes: ["/health", "/dashboard", "/check", "/usage"],
+    };
+  });
+
   // Protected routes (MASTER_KEY required)
   app.register(checkRoute, { prefix: "/check" });
   app.register(usageRoute, { prefix: "/usage" });
