@@ -6,7 +6,6 @@ import { logDecision } from "../services/logger.js";
 import { redis } from "../utils/redis.js";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
 import { recordUsage } from "../services/usage.js";
-import { checkKeyLimits } from "../services/keyLimiter.js";
 import { getMonthlyUsage } from "../services/monthlyUsage.js";
 import { auth } from "../middleware/auth.js";
 

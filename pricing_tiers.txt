@@ -1,0 +1,29 @@
+
+---
+
+# ✅ Pricing tiers (v1)
+
+You can add this to `README.md` or create `PRICING.md`.
+
+```md
+# Pricing (v1)
+
+## Free
+- 30 requests/minute (RPM)
+- 10,000 requests/month
+- Basic usage tracking (daily + monthly)
+
+Best for testing, small apps, demos.
+
+## Pro
+- 300 requests/minute (RPM)
+- 300,000 requests/month
+- Priority limits + better headroom
+
+Best for production apps with real traffic.
+
+## Enterprise (coming)
+- Custom RPM + quota
+- Multiple API keys per org
+- Team access + audit logs
+- SLA + dedicated support
