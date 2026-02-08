@@ -8,6 +8,7 @@ import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
 import { recordUsage } from "../services/usage.js";
 import { checkKeyLimits } from "../services/keyLimiter.js";
 import { getMonthlyUsage } from "../services/monthlyUsage.js";
+import { auth } from "../middleware/auth.js";
 
 function normalizeIp(ip: string) {
   return ip === "::1" ? "127.0.0.1" : ip; // localhost fix
@@ -16,7 +17,7 @@ function normalizeIp(ip: string) {
 export default async function (app: FastifyInstance) {
   app.post(
     "/",
-    { preHandler: [apiKeyGuard] },
+    { preHandler: [auth, apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const clientKey = req.apiKey!; // Set by apiKeyGuard middleware
 

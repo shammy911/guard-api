@@ -3,7 +3,10 @@ import Fastify from "fastify";
 import usageRoute from "./routes/usage.js";
 import checkRoute from "./routes/check.js";
 import cors from "@fastify/cors";
-import { auth } from "./middleware/auth.js";
+import billingCheckout from "./routes/billingCheckout.js";
+import billingWebhook from "./routes/billingWebhook.js";
+import dashboard from "./routes/dashboard.js";
+import dashboardData from "./routes/dashboardData.js";
 
 async function start() {
   if (!process.env.REDIS_URL) {
@@ -16,6 +19,8 @@ async function start() {
 
   const app = Fastify({
     trustProxy: true,
+    // so we can get rawBody for webhooks
+    bodyLimit: 1048576, // 1MB, adjust as needed
   });
 
   await app.register(cors, { origin: false });
@@ -28,14 +33,17 @@ async function start() {
     };
   });
 
-  app.addHook("preHandler", async (req, reply) => {
-    // Skip auth for health check
-    if (req.url === "/health") return;
-    await auth(req, reply);
-  });
-
-  app.register(usageRoute, { prefix: "/usage" });
+  // Protected routes (MASTER_KEY required)
   app.register(checkRoute, { prefix: "/check" });
+  app.register(usageRoute, { prefix: "/usage" });
+  app.register(billingCheckout, { prefix: "/billing" });
+  //app.register(billingPortal, { prefix: "/billing" });
+
+  // Stripe webhook (NO auth, secured via signature)
+  app.register(billingWebhook, { prefix: "/billing" });
+
+  app.register(dashboard, { prefix: "/dashboard" });
+  app.register(dashboardData, { prefix: "/dashboard" });
 
   const port = Number(process.env.PORT) || 3000;
 
