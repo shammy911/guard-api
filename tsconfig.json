@@ -1,6 +1,6 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
-  "include": ["src/**/*", "scripts"],
+  "include": ["src/**/*", "scripts", "types/**/*.d.ts"],
   "compilerOptions": {
     // File Layout
     // "rootDir": "./src",
