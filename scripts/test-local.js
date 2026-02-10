@@ -1,7 +1,7 @@
 import "dotenv/config";
 
 for (let i = 1; i <= 40; i++) {
-  fetch("http://localhost:3000/check", {
+  fetch(`http://localhost:${process.env.PORT || 3001}/check`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

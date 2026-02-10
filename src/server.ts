@@ -8,6 +8,7 @@ import billingWebhook from "./routes/billingWebhook.js";
 import dashboard from "./routes/dashboard.js";
 import dashboardData from "./routes/dashboardData.js";
 import keys from "./routes/keys.js";
+import logs from "./routes/logs.js";
 
 async function start() {
   if (!process.env.REDIS_URL) {
@@ -50,8 +51,9 @@ async function start() {
   // Stripe webhook (NO auth, secured via signature)
   app.register(billingWebhook, { prefix: "/billing" });
 
-  app.register(dashboard, { prefix: "/dashboard" });
-  app.register(dashboardData, { prefix: "/dashboard" });
+  app.register(dashboard);
+  app.register(logs);
+  //app.register(dashboardData, { prefix: "/dashboard" });
 
   app.register(keys);
 

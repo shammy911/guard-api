@@ -11,7 +11,7 @@ export default async function Dashboard(app: FastifyInstance) {
     async (req: FastifyRequest, reply: FastifyReply) => {
       const apiKey = req.apiKey!;
       const planName = req.plan?.planName! || "Free";
-      const plan = PLANS[planName as keyof typeof PLANS];
+      const plan = PLANS[planName.toLowerCase() as keyof typeof PLANS];
 
       const today = new Date().toISOString().slice(0, 10);
 
