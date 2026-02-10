@@ -7,6 +7,7 @@ import billingCheckout from "./routes/billingCheckout.js";
 import billingWebhook from "./routes/billingWebhook.js";
 import dashboard from "./routes/dashboard.js";
 import dashboardData from "./routes/dashboardData.js";
+import keys from "./routes/keys.js";
 
 async function start() {
   if (!process.env.REDIS_URL) {
@@ -51,6 +52,8 @@ async function start() {
 
   app.register(dashboard, { prefix: "/dashboard" });
   app.register(dashboardData, { prefix: "/dashboard" });
+
+  app.register(keys, { prefix: "/keys" });
 
   const port = Number(process.env.PORT) || 3000;
 
