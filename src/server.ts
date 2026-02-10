@@ -53,9 +53,9 @@ async function start() {
   app.register(dashboard, { prefix: "/dashboard" });
   app.register(dashboardData, { prefix: "/dashboard" });
 
-  app.register(keys, { prefix: "/keys" });
+  app.register(keys);
 
-  const port = Number(process.env.PORT) || 3000;
+  const port = Number(process.env.PORT) || 3001;
 
   await app.listen({ port, host: "0.0.0.0" });
   console.log(
