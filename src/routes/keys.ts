@@ -1,8 +1,8 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import {
   createApiKey,
-  disableApiKey,
-  rotateApiKey,
+  disableByKid,
+  rotateByKid,
 } from "../services/apiKeys.js";
 import { redis } from "../utils/redis.js";
 
@@ -22,15 +22,12 @@ export default async function keys(app: FastifyInstance) {
       apiKeys.map(async (k) => {
         const meta = await redis.hgetall(`api_key:${k}`);
         return {
-          apiKeysMasked: mask(k),
-          apiKeyPrefix: k.slice(0, 9), // "guard_" + 5 chars
-          enabled: meta.enabled === "false",
+          kid: meta.kid || null,
+          apiKeyMasked: mask(k),
+          apiKeyPrefix: k.slice(0, 9),
+          enabled: meta.enabled !== "false",
           plan: meta.plan || "free",
           name: meta.name || "",
-          // createdAt: meta.created_at
-          //   ? new Date(parseInt(meta.created_at))
-          //   : null,
-          // lastSeen: meta.last_seen ? new Date(parseInt(meta.last_seen)) : null,
           createdAt: meta.created_at ? Number(meta.created_at) : null,
           lastSeen: meta.last_seen ? Number(meta.last_seen) : null,
         };
@@ -50,16 +47,23 @@ export default async function keys(app: FastifyInstance) {
     return { apiKey };
   });
 
+  // DISABLE by kid
   app.post("/keys/:key/disable", async (req: FastifyRequest) => {
-    const { key } = req.params as { key: string };
-    await disableApiKey(key);
+    const { kid } = req.params as { kid: string };
+    const r = await disableByKid(kid);
+    if (!r.ok) return { error: r.error };
     return { success: true };
   });
 
+  // ROTATE by kid (returns new full key ONCE)
   app.post("/keys/:key/rotate", async (req: FastifyRequest) => {
-    const { key } = req.params as { key: string };
+    const { kid } = req.params as { kid: string };
     const { userId, name } = req.body as { userId: string; name?: string };
-    const newKey = await rotateApiKey(key, userId, name);
-    return { apiKey: newKey };
+
+    if (!userId) return { error: "USER_ID_REQUIRED" };
+
+    const r = await rotateByKid(kid, userId, name);
+    if (!r.ok) return { error: r.error };
+    return { apiKey: r.apiKey, kid: r.kid };
   });
 }
