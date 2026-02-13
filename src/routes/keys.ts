@@ -44,11 +44,11 @@ export default async function keys(app: FastifyInstance) {
   app.post("/keys", async (req: FastifyRequest) => {
     const { userId, name } = req.body as { userId: string; name?: string };
     const apiKey = await createApiKey(userId, name);
-    return { apiKey };
+    return { apiKey: apiKey.apiKey, kid: apiKey.kid };
   });
 
   // DISABLE by kid
-  app.post("/keys/:key/disable", async (req: FastifyRequest) => {
+  app.post("/keys/:kid/disable", async (req: FastifyRequest) => {
     const { kid } = req.params as { kid: string };
     const r = await disableByKid(kid);
     if (!r.ok) return { error: r.error };
@@ -56,7 +56,7 @@ export default async function keys(app: FastifyInstance) {
   });
 
   // ROTATE by kid (returns new full key ONCE)
-  app.post("/keys/:key/rotate", async (req: FastifyRequest) => {
+  app.post("/keys/:kid/rotate", async (req: FastifyRequest) => {
     const { kid } = req.params as { kid: string };
     const { userId, name } = req.body as { userId: string; name?: string };
 
