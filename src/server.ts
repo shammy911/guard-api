@@ -6,9 +6,9 @@ import cors from "@fastify/cors";
 import billingCheckout from "./routes/billingCheckout.js";
 import billingWebhook from "./routes/billingWebhook.js";
 import dashboard from "./routes/dashboard.js";
-import dashboardData from "./routes/dashboardData.js";
 import keys from "./routes/keys.js";
 import logs from "./routes/logs.js";
+import dashboardSeries from "./routes/dashboardSeries.js";
 
 async function start() {
   if (!process.env.REDIS_URL) {
@@ -53,7 +53,7 @@ async function start() {
 
   app.register(dashboard);
   app.register(logs);
-  //app.register(dashboardData, { prefix: "/dashboard" });
+  app.register(dashboardSeries);
 
   app.register(keys);
 
