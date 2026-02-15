@@ -18,6 +18,9 @@ export default async function (app: FastifyInstance) {
     "/",
     { preHandler: [auth, apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
+      //Latency clock start
+      const startTime = Date.now();
+
       const apiKey = req.apiKey!; // Set by apiKeyGuard middleware
 
       //Guard Self rate limiting service
@@ -42,7 +45,7 @@ export default async function (app: FastifyInstance) {
 
       // IP Normalization and Route Extraction with basic validation
       const ip = normalizeIp(req.ip);
-      const body = req.body as { route?: string };
+      const body = req.body as { route?: string; method?: string };
       if (!body?.route || typeof body.route !== "string") {
         return reply.code(400).send({ error: "ROUTE_REQUIRED" });
       }
@@ -68,6 +71,7 @@ export default async function (app: FastifyInstance) {
       }
 
       const route = body.route;
+      const method = typeof body.method === "string" ? body.method : undefined;
 
       // Rate limit decision
       let allowed = false;
@@ -104,8 +108,10 @@ export default async function (app: FastifyInstance) {
             clientKey: apiKey,
             ip,
             route,
+            method,
             allowed: false,
             reason: "RATE_LIMIT",
+            latencyMs: Date.now() - startTime, // latency measurement
           });
         } catch (err) {
           // even logging failure should not crash
@@ -123,7 +129,9 @@ export default async function (app: FastifyInstance) {
           clientKey: apiKey,
           ip,
           route,
+          method,
           allowed: true,
+          latencyMs: Date.now() - startTime,
         });
       } catch (err) {
         // silent failure

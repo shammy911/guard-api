@@ -5,8 +5,10 @@ export async function logDecision(data: {
   clientKey: string;
   ip: string;
   route: string;
+  method?: string;
   allowed: boolean;
   reason?: string;
+  latencyMs?: number;
 }) {
   const logEntry = {
     ...data,

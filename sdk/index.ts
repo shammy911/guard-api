@@ -53,7 +53,7 @@ export class GuardClient {
    * `route` should match the logical endpoint in client's app (e.g. "/api/login").
    */
 
-  async check(route: string): Promise<GuardDecision> {
+  async check(route: string, method?: string): Promise<GuardDecision> {
     if (!route || typeof route !== "string") {
       return { allowed: false, reason: "ROUTE_REQUIRED" };
     }
@@ -69,7 +69,7 @@ export class GuardClient {
           "x-guard-key": this.masterKey,
           "x-api-key": this.apiKey,
         },
-        body: JSON.stringify({ route }),
+        body: JSON.stringify({ route, method }),
         signal: controller.signal,
       });
 
@@ -115,7 +115,8 @@ export class GuardClient {
 export async function protect(
   route: string,
   opts: GuardClientOptions,
+  method?: string,
 ): Promise<GuardDecision> {
   const client = new GuardClient(opts);
-  return client.check(route);
+  return client.check(route, method);
 }
