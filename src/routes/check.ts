@@ -71,7 +71,8 @@ export default async function (app: FastifyInstance) {
       }
 
       const route = body.route;
-      const method = typeof body.method === "string" ? body.method : undefined;
+      //const method = typeof body.method === "string" ? body.method : undefined;
+      const method = req.method;
 
       // Rate limit decision
       let allowed = false;
