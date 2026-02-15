@@ -69,6 +69,7 @@ export default async function Dashboard(app: FastifyInstance) {
       }
 
       return {
+        apiKey,
         plan: {
           name: planName,
           rpm: limits.rpm,
