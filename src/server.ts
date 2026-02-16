@@ -9,6 +9,8 @@ import dashboard from "./routes/dashboard.js";
 import keys from "./routes/keys.js";
 import logs from "./routes/logs.js";
 import dashboardSeries from "./routes/dashboardSeries.js";
+import billingStatus from "./routes/billingStatus.js";
+import billingPortal from "./routes/billingPortal.js";
 
 async function start() {
   if (!process.env.REDIS_URL) {
@@ -38,9 +40,50 @@ async function start() {
   app.get("/", async () => {
     return {
       status: "ok",
-      routes: ["/health", "/dashboard", "/check", "/usage"],
+      routes: [
+        "/health",
+        "/dashboard",
+        "/check",
+        "/usage",
+        "/dashboard",
+        "/dashboard/series",
+        "/logs",
+        "/keys",
+        "/billing/checkout",
+        "/billing/webhook",
+        "/billing/status",
+        "/billing/portal",
+      ],
     };
   });
+
+  app.addContentTypeParser(
+    ["application/json", "application/*+json"],
+    { parseAs: "buffer" },
+    (req, body, done) => {
+      const raw = body.toString("utf8");
+      (req as any).rawBody = raw;
+
+      // For webhook: don't fail on JSON parse (signature is validated later)
+      if (req.url.startsWith("/billing/webhook")) {
+        try {
+          // webhook handler expects req.body parsed too, so we still parse
+          done(null, raw ? JSON.parse(raw) : {});
+        } catch {
+          // keep parsed body empty but rawBody still available
+          done(null, {});
+        }
+        return;
+      }
+
+      // Normal JSON parsing for all other routes
+      try {
+        done(null, raw ? JSON.parse(raw) : {});
+      } catch (err) {
+        done(err as Error);
+      }
+    },
+  );
 
   // Protected routes (MASTER_KEY required)
   app.register(checkRoute, { prefix: "/check" });
@@ -48,7 +91,7 @@ async function start() {
   app.register(billingCheckout, { prefix: "/billing" });
   //app.register(billingPortal, { prefix: "/billing" });
 
-  // Stripe webhook (NO auth, secured via signature)
+  // Lemon Squeezy webhook (NO auth, secured via signature)
   app.register(billingWebhook, { prefix: "/billing" });
 
   app.register(dashboard);
@@ -56,6 +99,8 @@ async function start() {
   app.register(dashboardSeries);
 
   app.register(keys);
+  app.register(billingStatus, { prefix: "/billing" });
+  app.register(billingPortal, { prefix: "/billing" });
 
   const port = Number(process.env.PORT) || 3001;
 

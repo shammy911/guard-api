@@ -8,7 +8,7 @@ for (let i = 1; i <= 40; i++) {
       "x-guard-key": `${process.env.MASTER_KEY}`,
       "x-api-key": `${process.env.API_KEY_FREE}`,
     },
-    body: JSON.stringify({ route: "/api/login" }),
+    body: JSON.stringify({ route: "/api/vehicles" }),
   })
     .then((r) => r.json())
     .then((d) => console.log(i, d));
