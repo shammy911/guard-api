@@ -16,9 +16,6 @@ export interface GuardClientOptions {
   /** Guard API base URL, e.g. https://guard-api...up.railway.app */
   baseUrl: string;
 
-  /** MASTER_KEY (server-only). Sent as x-guard-key */
-  masterKey: string;
-
   /** Customer API key. Sent as x-api-key */
   apiKey: string;
 
@@ -35,14 +32,12 @@ export interface GuardClientOptions {
 
 export class GuardClient {
   private baseUrl: string;
-  private masterKey: string;
   private apiKey: string;
   private timeoutMs: number;
   private failClosed: boolean;
 
   constructor(opts: GuardClientOptions) {
     this.baseUrl = opts.baseUrl.replace(/\/+$/, "");
-    this.masterKey = opts.masterKey;
     this.apiKey = opts.apiKey;
     this.timeoutMs = opts.timeoutMs ?? 800;
     this.failClosed = opts.failClosed ?? true;
@@ -66,7 +61,6 @@ export class GuardClient {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-guard-key": this.masterKey,
           "x-api-key": this.apiKey,
         },
         body: JSON.stringify({ route, method }),
