@@ -8,7 +8,7 @@ export default async function billingCheckout(app: FastifyInstance) {
     async (req: FastifyRequest, reply: FastifyReply) => {
       const apiKey = req.apiKey!;
 
-      const buyId = process.env.LEMON_SQUEEZY_BUY_ID || "817449"; // move to env
+      const buyId = process.env.LEMON_SQUEEZY_VARIANT_BUY_ID || "817449"; // move to env
       const base = `https://checkout.lemonsqueezy.com/buy/${buyId}`;
 
       // Add custom metadata (comes back in webhook)
