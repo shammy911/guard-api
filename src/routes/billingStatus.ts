@@ -2,11 +2,12 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
 import { redis } from "../utils/redis.js";
 import { PLANS } from "../config/plans.js";
+import { auth } from "../middleware/auth.js";
 
 export default async function billingStatus(app: FastifyInstance) {
   app.get(
     "/status",
-    { preHandler: [apiKeyGuard] },
+    { preHandler: [auth, apiKeyGuard] },
     async (req: FastifyRequest) => {
       const apiKey = req.apiKey!;
       const meta = await redis.hgetall(`api_key:${apiKey}`);

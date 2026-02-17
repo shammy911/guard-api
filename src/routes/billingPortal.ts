@@ -1,11 +1,12 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
 import { redis } from "../utils/redis.js";
+import { auth } from "../middleware/auth.js";
 
 export default async function billingPortal(app: FastifyInstance) {
   app.get(
     "/portal",
-    { preHandler: [apiKeyGuard] },
+    { preHandler: [auth, apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const apiKey = req.apiKey!;
       const store = process.env.LEMON_SQUEEZY_STORE_SLUG;
