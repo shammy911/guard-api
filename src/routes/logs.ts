@@ -6,7 +6,7 @@ import { auth } from "../middleware/auth.js";
 export default async function logs(app: FastifyInstance) {
   app.get(
     "/logs",
-    { preHandler: [apiKeyGuard] },
+    { preHandler: [auth, apiKeyGuard] },
     async (req: FastifyRequest) => {
       const apiKey = req.apiKey!;
       const q = req.query as { limit?: string };

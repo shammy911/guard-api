@@ -3,6 +3,7 @@ import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
 import { PLANS } from "../config/plans.js";
 import { redis } from "../utils/redis.js";
 import { getMonthlyUsage } from "../services/monthlyUsage.js";
+import { auth } from "../middleware/auth.js";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -11,7 +12,7 @@ function todayISO() {
 export default async function Dashboard(app: FastifyInstance) {
   app.get(
     "/dashboard",
-    { preHandler: [apiKeyGuard] },
+    { preHandler: [auth, apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const apiKey = req.apiKey!;
       const planName = req.plan?.planName! || "Free";

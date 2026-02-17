@@ -5,6 +5,7 @@ import {
   rotateByKid,
 } from "../services/apiKeys.js";
 import { redis } from "../utils/redis.js";
+import { auth } from "../middleware/auth.js";
 
 function mask(apiKey: string) {
   return `${apiKey.slice(0, 8)}...${apiKey.slice(-4)}`;
@@ -12,7 +13,7 @@ function mask(apiKey: string) {
 
 export default async function keys(app: FastifyInstance) {
   // List API keys for a user
-  app.get("/keys", async (req: FastifyRequest) => {
+  app.get("/keys", { preHandler: [auth] }, async (req: FastifyRequest) => {
     const { userId } = req.query as { userId: string };
     if (!userId) return { keys: [] };
 
@@ -41,29 +42,37 @@ export default async function keys(app: FastifyInstance) {
   });
 
   // Create a new API key for a user
-  app.post("/keys", async (req: FastifyRequest) => {
+  app.post("/keys", { preHandler: [auth] }, async (req: FastifyRequest) => {
     const { userId, name } = req.body as { userId: string; name?: string };
     const apiKey = await createApiKey(userId, name);
     return { apiKey: apiKey.apiKey, kid: apiKey.kid };
   });
 
   // DISABLE by kid
-  app.post("/keys/:kid/disable", async (req: FastifyRequest) => {
-    const { kid } = req.params as { kid: string };
-    const r = await disableByKid(kid);
-    if (!r.ok) return { error: r.error };
-    return { success: true };
-  });
+  app.post(
+    "/keys/:kid/disable",
+    { preHandler: [auth] },
+    async (req: FastifyRequest) => {
+      const { kid } = req.params as { kid: string };
+      const r = await disableByKid(kid);
+      if (!r.ok) return { error: r.error };
+      return { success: true };
+    },
+  );
 
   // ROTATE by kid (returns new full key ONCE)
-  app.post("/keys/:kid/rotate", async (req: FastifyRequest) => {
-    const { kid } = req.params as { kid: string };
-    const { userId, name } = req.body as { userId: string; name?: string };
+  app.post(
+    "/keys/:kid/rotate",
+    { preHandler: [auth] },
+    async (req: FastifyRequest) => {
+      const { kid } = req.params as { kid: string };
+      const { userId, name } = req.body as { userId: string; name?: string };
 
-    if (!userId) return { error: "USER_ID_REQUIRED" };
+      if (!userId) return { error: "USER_ID_REQUIRED" };
 
-    const r = await rotateByKid(kid, userId, name);
-    if (!r.ok) return { error: r.error };
-    return { apiKey: r.apiKey, kid: r.kid };
-  });
+      const r = await rotateByKid(kid, userId, name);
+      if (!r.ok) return { error: r.error };
+      return { apiKey: r.apiKey, kid: r.kid };
+    },
+  );
 }

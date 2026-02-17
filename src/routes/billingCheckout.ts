@@ -1,10 +1,11 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
+import { auth } from "../middleware/auth.js";
 
 export default async function billingCheckout(app: FastifyInstance) {
   app.post(
     "/checkout",
-    { preHandler: [apiKeyGuard] },
+    { preHandler: [auth, apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const apiKey = req.apiKey!;
 

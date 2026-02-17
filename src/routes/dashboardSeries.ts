@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
 import { redis } from "../utils/redis.js";
+import { auth } from "../middleware/auth.js";
 
 function formatDay(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -20,7 +21,7 @@ function lastNDays(days: number) {
 export default async function dashboardSeries(app: FastifyInstance) {
   app.get(
     "/dashboard/series",
-    { preHandler: [apiKeyGuard] },
+    { preHandler: [auth, apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const apiKey = req.apiKey!;
       const days = Math.min(
