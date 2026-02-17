@@ -16,7 +16,7 @@ function normalizeIp(ip: string) {
 export default async function (app: FastifyInstance) {
   app.post(
     "/",
-    { preHandler: [auth, apiKeyGuard] },
+    { preHandler: [apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       //Latency clock start
       const startTime = Date.now();
