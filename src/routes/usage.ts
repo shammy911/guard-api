@@ -18,8 +18,8 @@ export default async function (app: FastifyInstance) {
       const usage = await getMonthlyUsage(apiKey);
 
       return reply.send({
-        apiKey,
-        usage,
+        API_KEY: apiKey,
+        MONTHLY_USAGE: usage,
       });
     },
   );

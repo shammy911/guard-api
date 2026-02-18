@@ -5,7 +5,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { logDecision } from "../services/logger.js";
 import { redis } from "../utils/redis.js";
 import { apiKeyGuard } from "../middleware/apiKeyGuard.js";
-import { recordUsage } from "../services/usage.js";
+import { recordUsage } from "../services/usageRecorder.js";
 import { getMonthlyUsage } from "../services/monthlyUsage.js";
 import { auth } from "../middleware/auth.js";
 
