@@ -6,7 +6,7 @@ import { auth } from "../middleware/auth.js";
 export default async function (app: FastifyInstance) {
   app.get(
     "/",
-    { preHandler: [auth, apiKeyGuard] },
+    { preHandler: [apiKeyGuard] },
     async (req: FastifyRequest, reply: FastifyReply) => {
       const apiKey = req.apiKey!; // Set by apiKeyGuard middleware
       if (!apiKey) {
