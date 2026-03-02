@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: guard-api
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: REDIS_URL
+        sync: false
+      - key: MASTER_KEY
+        sync: false
+      - key: RATE_LIMIT_WINDOW
+        value: 60
+      - key: RATE_LIMIT_MAX
+        value: 10
+      - key: SELF_RATE_LIMIT
+        value: 100
+      - key: LOG_RETENTION
+        value: 1000
+      - key: GUARD_URL
+        sync: false
+      - key: API_KEY_FREE
+        sync: false
+      - key: API_KEY_PRO
+        sync: false
+      - key: LEMON_SQUEEZY_API_KEY
+        sync: false
+      - key: LEMON_SQUEEZY_WEBHOOK_SECRET
+        sync: false
+      - key: LEMON_SQUEEZY_PRODUCT_ID
+        sync: false
+      - key: LEMON_SQUEEZY_VARIANT_BUY_ID
+        value: 817449
+      - key: LEMON_SQUEEZY_STORE_SLUG
+        value: shammycodex
